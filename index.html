@@ -153,6 +153,19 @@ input[type="text"]::placeholder { color: var(--text-dim); }
 
 .btn-shuffle:active { background: rgba(244,162,97,0.3); }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px) rotate(-2deg); }
+  30% { transform: translateX(5px) rotate(1.5deg); }
+  45% { transform: translateX(-4px) rotate(-1deg); }
+  60% { transform: translateX(3px) rotate(0.5deg); }
+  75% { transform: translateX(-2px); }
+}
+
+.tournament-name-row.shaking {
+  animation: shake 0.5s ease;
+}
+
 /* Buttons */
 .btn {
   width: 100%;
@@ -643,7 +656,14 @@ function randomTournamentName() {
 }
 
 function shuffleName() {
-  document.getElementById('tournament-name').value = randomTournamentName();
+  const row = document.querySelector('.tournament-name-row');
+  const input = document.getElementById('tournament-name');
+  input.value = '';
+  row.classList.remove('shaking');
+  void row.offsetWidth; // force reflow
+  row.classList.add('shaking');
+  setTimeout(() => { input.value = randomTournamentName(); }, 250);
+  row.addEventListener('animationend', () => row.classList.remove('shaking'), { once: true });
 }
 
 // ============================================================
