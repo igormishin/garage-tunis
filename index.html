@@ -661,6 +661,18 @@ function confirmGame(gameIdx) {
 }
 
 function finishTournament() {
+  // If current game has valid complete scores, save it before finishing
+  if (currentGame < schedule.length) {
+    const s1el = document.getElementById(`score1-${currentGame}`);
+    const s2el = document.getElementById(`score2-${currentGame}`);
+    if (s1el && s2el) {
+      const v1 = parseInt(s1el.value);
+      const v2 = parseInt(s2el.value);
+      if (!isNaN(v1) && !isNaN(v2) && v1 >= 0 && v2 >= 0 && v1 !== v2) {
+        results[currentGame] = { score1: v1, score2: v2 };
+      }
+    }
+  }
   showFinalScreen();
 }
 
