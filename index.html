@@ -900,7 +900,9 @@ function renderCurrentGame() {
       shownTip = true;
       const tip = document.createElement('div');
       tip.style.cssText = 'background:var(--card);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:0.8rem;color:var(--text-dim);text-align:center;position:relative';
-      tip.innerHTML = 'Введите счёт обеих команд. Можно закончить турнир досрочно <span onclick="this.parentElement.remove()" style="position:absolute;top:6px;right:10px;cursor:pointer;opacity:0.5">✕</span>';
+      const totalGames = schedule.length;
+      const numPlayers = players.length;
+      tip.innerHTML = `Полный турнир: ${totalGames} игр для ${numPlayers} игроков — каждый сыграет поровну. Можно закончить досрочно в любой момент. <span onclick="this.parentElement.remove()" style="position:absolute;top:6px;right:10px;cursor:pointer;opacity:0.5">✕</span>`;
       container.insertBefore(tip, card);
     }
   }
