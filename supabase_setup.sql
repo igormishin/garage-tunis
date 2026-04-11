@@ -26,3 +26,20 @@ create policy "Anyone can insert tournaments"
 create policy "Anyone can delete tournaments"
   on tournaments for delete
   using (true);
+
+-- Feedback table
+create table feedback (
+  id bigint generated always as identity primary key,
+  message text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table feedback enable row level security;
+
+create policy "Anyone can insert feedback"
+  on feedback for insert
+  with check (true);
+
+create policy "Anyone can read feedback"
+  on feedback for select
+  using (true);
