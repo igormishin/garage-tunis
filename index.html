@@ -696,12 +696,30 @@ const screenFinal = document.getElementById('screen-final');
 const screenHistory = document.getElementById('screen-history');
 const screenDetail = document.getElementById('screen-detail');
 const allScreens = [screenNames, screenGames, screenFinal, screenHistory, screenDetail];
+let _isPopState = false;
 
-function showScreen(screen) {
+function showScreen(screen, pushState) {
   allScreens.forEach(s => s.classList.remove('active'));
   screen.classList.add('active');
   window.scrollTo(0, 0);
+  if (pushState !== false && !_isPopState) {
+    history.pushState({ screen: screen.id }, '', '#' + screen.id);
+  }
 }
+
+window.addEventListener('popstate', async (e) => {
+  const screenId = e.state?.screen || 'screen-names';
+  const screen = document.getElementById(screenId);
+  if (!screen) return;
+
+  _isPopState = true;
+  if (screenId === 'screen-history') {
+    await showHistory();
+  } else {
+    showScreen(screen, false);
+  }
+  _isPopState = false;
+});
 
 function formatTime(iso) {
   const d = new Date(iso);
