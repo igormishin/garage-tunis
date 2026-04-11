@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Beach Volley 2×2</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --card: #0f3460;
+  --accent: #e94560;
+  --sand: #f4a261;
+  --sand-light: #f4c98a;
+  --text: #eee;
+  --text-dim: #8899aa;
+  --green: #2ecc71;
+  --radius: 14px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--sand), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+}
+
+/* Screens */
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Input screen */
+.player-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.player-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--sand);
+  flex-shrink: 0;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 14px 16px;
+  border: 2px solid var(--card);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+  border-color: var(--sand);
+}
+
+input[type="text"]::placeholder {
+  color: var(--text-dim);
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--sand), var(--accent));
+  color: #fff;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--card);
+  color: var(--text);
+  margin-top: 12px;
+}
+
+/* Game cards */
+.game-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.game-card.current {
+  border-color: var(--sand);
+}
+
+.game-card.completed {
+  opacity: 0.7;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--card);
+}
+
+.game-num {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--sand);
+}
+
+.game-rest {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.game-body {
+  padding: 16px;
+}
+
+.game-teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.team-btn {
+  flex: 1;
+  padding: 14px 8px;
+  border: 2px solid var(--card);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  line-height: 1.3;
+}
+
+.team-btn.selected {
+  border-color: var(--green);
+  background: rgba(46, 204, 113, 0.15);
+  color: var(--green);
+}
+
+.team-btn.loser {
+  border-color: var(--accent);
+  opacity: 0.6;
+}
+
+.vs-label {
+  font-weight: 700;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.score-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.score-label {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+input[type="number"] {
+  width: 70px;
+  padding: 12px;
+  border: 2px solid var(--card);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+input[type="number"]:focus {
+  border-color: var(--sand);
+}
+
+.game-result-summary {
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.game-result-summary .winner {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.game-result-summary .score {
+  color: var(--sand);
+  font-weight: 700;
+}
+
+/* Leaderboard */
+.leaderboard {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.leaderboard h2 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: var(--sand);
+}
+
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.lb-table th {
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--card);
+}
+
+.lb-table td {
+  padding: 10px 8px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.lb-table tr:first-child td {
+  color: var(--sand);
+  font-weight: 700;
+}
+
+.lb-table .rank {
+  font-weight: 700;
+  width: 30px;
+}
+
+.lb-table .name { font-weight: 600; }
+.lb-table .wins { color: var(--green); text-align: center; }
+.lb-table .losses { color: var(--accent); text-align: center; }
+.lb-table .points { color: var(--sand); text-align: center; }
+
+/* Final screen */
+.trophy { text-align: center; font-size: 3rem; margin-bottom: 12px; }
+
+.final-title {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--sand), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 24px;
+  height: 180px;
+}
+
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.podium-bar {
+  width: 80px;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 12px;
+}
+
+.podium-bar.p1 { height: 140px; background: linear-gradient(to top, #f4a261, #e76f51); }
+.podium-bar.p2 { height: 100px; background: linear-gradient(to top, #8899aa, #6c7a89); }
+.podium-bar.p3 { height: 70px; background: linear-gradient(to top, #cd7f32, #a0522d); }
+
+.podium-rank {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.9);
+}
+
+.podium-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.podium-stats {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-dim);
+}
+
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--card);
+  border-top-color: var(--sand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Beach Volley 2×2</h1>
+  <p class="subtitle">Турнир на 6 игроков</p>
+
+  <!-- Screen 1: Player Names -->
+  <div id="screen-names" class="screen active">
+    <div class="player-inputs" id="player-inputs"></div>
+    <button class="btn btn-primary" id="btn-start" disabled>Составить расписание</button>
+  </div>
+
+  <!-- Screen 2: Schedule + Scoring -->
+  <div id="screen-games" class="screen">
+    <div id="games-list"></div>
+    <button class="btn btn-secondary" id="btn-reset" onclick="resetToNames()">Начать заново</button>
+
+    <div class="leaderboard" id="leaderboard-section">
+      <h2>Таблица</h2>
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th class="rank">#</th>
+            <th class="name">Игрок</th>
+            <th class="wins">W</th>
+            <th class="losses">L</th>
+            <th class="points">Очки</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Screen 3: Final Results -->
+  <div id="screen-final" class="screen">
+    <div class="trophy">🏐</div>
+    <div class="final-title">Турнир завершён!</div>
+    <div id="podium" class="podium"></div>
+    <div class="leaderboard">
+      <h2>Итоговая таблица</h2>
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th class="rank">#</th>
+            <th class="name">Игрок</th>
+            <th class="wins">W</th>
+            <th class="losses">L</th>
+            <th class="points">Очки</th>
+          </tr>
+        </thead>
+        <tbody id="final-leaderboard-body"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-primary" id="btn-restart">Новый турнир</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// PRE-COMPUTED OPTIMAL SCHEDULE (generated by simulated annealing)
+// Indices 0-5 map to players. 15/15 partner pairs, 15/15 opponent pairs.
+// ============================================================
+
+// Pre-computed optimal schedule template (player indices 0-5)
+// Stats: 15/15 unique partner pairs, 15/15 unique opponent pairs,
+// each player: 5-6 games, 2-3 rests, no consecutive rests
+const SCHEDULE_TEMPLATE = [
+  { team1: [1, 4], team2: [2, 5], rest: [0, 3] },
+  { team1: [0, 3], team2: [1, 2], rest: [4, 5] },
+  { team1: [2, 3], team2: [4, 5], rest: [0, 1] },
+  { team1: [0, 4], team2: [1, 5], rest: [2, 3] },
+  { team1: [0, 2], team2: [3, 4], rest: [1, 5] },
+  { team1: [0, 1], team2: [3, 5], rest: [2, 4] },
+  { team1: [0, 5], team2: [2, 4], rest: [1, 3] },
+  { team1: [1, 3], team2: [4, 5], rest: [0, 2] },
+];
+
+// ============================================================
+// APP STATE
+// ============================================================
+
+let players = [];
+let schedule = [];
+let results = []; // { winner: 1|2, loserScore: number }
+let currentGame = 0;
+
+// ============================================================
+// UI
+// ============================================================
+
+const screenNames = document.getElementById('screen-names');
+const screenGames = document.getElementById('screen-games');
+const screenFinal = document.getElementById('screen-final');
+
+function showScreen(screen) {
+  [screenNames, screenGames, screenFinal].forEach(s => s.classList.remove('active'));
+  screen.classList.add('active');
+}
+
+// --- Screen 1: Player names ---
+
+function initPlayerInputs() {
+  const container = document.getElementById('player-inputs');
+  for (let i = 1; i <= 6; i++) {
+    const div = document.createElement('div');
+    div.className = 'player-input';
+    div.innerHTML = `
+      <div class="player-num">${i}</div>
+      <input type="text" id="player-${i}" placeholder="Игрок ${i}" autocomplete="off">
+    `;
+    container.appendChild(div);
+  }
+
+  // Enable start button when all filled
+  container.addEventListener('input', () => {
+    const filled = Array.from({ length: 6 }, (_, i) =>
+      document.getElementById(`player-${i + 1}`).value.trim()
+    ).every(v => v.length > 0);
+    document.getElementById('btn-start').disabled = !filled;
+  });
+}
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  players = Array.from({ length: 6 }, (_, i) =>
+    document.getElementById(`player-${i + 1}`).value.trim()
+  );
+
+  // Use pre-computed optimal schedule
+  schedule = SCHEDULE_TEMPLATE.map(g => ({
+    team1: [...g.team1], team2: [...g.team2], rest: [...g.rest]
+  }));
+  results = [];
+  currentGame = 0;
+
+  renderGames();
+  updateLeaderboard();
+  showScreen(screenGames);
+});
+
+// --- Screen 2: Games ---
+
+function renderGames() {
+  const container = document.getElementById('games-list');
+  container.innerHTML = '';
+
+  for (let i = 0; i < schedule.length; i++) {
+    const g = schedule[i];
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.id = `game-${i}`;
+
+    const t1names = g.team1.map(idx => players[idx]).join(' + ');
+    const t2names = g.team2.map(idx => players[idx]).join(' + ');
+    const restNames = g.rest.map(idx => players[idx]).join(', ');
+
+    if (i < currentGame && results[i]) {
+      // Completed game
+      card.classList.add('completed');
+      const r = results[i];
+      const winTeam = r.winner === 1 ? t1names : t2names;
+      const winScore = 15;
+      const loseScore = r.loserScore;
+      const scoreStr = r.winner === 1 ? `${winScore}:${loseScore}` : `${loseScore}:${winScore}`;
+
+      card.innerHTML = `
+        <div class="game-header">
+          <span class="game-num">Игра ${i + 1}</span>
+          <span class="game-rest">отдых: ${restNames}</span>
+        </div>
+        <div class="game-result-summary">
+          <span class="winner">${winTeam}</span> — <span class="score">${scoreStr}</span>
+        </div>
+      `;
+    } else if (i === currentGame) {
+      // Current game
+      card.classList.add('current');
+      card.innerHTML = `
+        <div class="game-header">
+          <span class="game-num">Игра ${i + 1}</span>
+          <span class="game-rest">отдых: ${restNames}</span>
+        </div>
+        <div class="game-body">
+          <div class="game-teams">
+            <button class="team-btn" id="team1-btn-${i}" onclick="selectWinner(${i}, 1)">${t1names}</button>
+            <span class="vs-label">vs</span>
+            <button class="team-btn" id="team2-btn-${i}" onclick="selectWinner(${i}, 2)">${t2names}</button>
+          </div>
+          <div class="score-input-row">
+            <span class="score-label">Очки проигравших:</span>
+            <input type="number" id="loser-score-${i}" min="0" max="14" placeholder="0-14">
+          </div>
+          <button class="btn btn-primary" id="confirm-btn-${i}" onclick="confirmGame(${i})" disabled>Подтвердить</button>
+        </div>
+      `;
+    } else {
+      // Future game
+      card.innerHTML = `
+        <div class="game-header">
+          <span class="game-num">Игра ${i + 1}</span>
+          <span class="game-rest">отдых: ${restNames}</span>
+        </div>
+        <div class="game-body">
+          <div class="game-teams">
+            <div class="team-btn" style="cursor:default;opacity:0.5">${t1names}</div>
+            <span class="vs-label">vs</span>
+            <div class="team-btn" style="cursor:default;opacity:0.5">${t2names}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    container.appendChild(card);
+  }
+
+  // Scroll to current game
+  setTimeout(() => {
+    const cur = document.getElementById(`game-${currentGame}`);
+    if (cur) cur.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+let selectedWinners = {};
+
+function selectWinner(gameIdx, team) {
+  selectedWinners[gameIdx] = team;
+
+  const btn1 = document.getElementById(`team1-btn-${gameIdx}`);
+  const btn2 = document.getElementById(`team2-btn-${gameIdx}`);
+
+  btn1.classList.toggle('selected', team === 1);
+  btn1.classList.toggle('loser', team === 2);
+  btn2.classList.toggle('selected', team === 2);
+  btn2.classList.toggle('loser', team === 1);
+
+  checkConfirmEnabled(gameIdx);
+}
+
+function checkConfirmEnabled(gameIdx) {
+  const hasWinner = selectedWinners[gameIdx] != null;
+  const scoreInput = document.getElementById(`loser-score-${gameIdx}`);
+  const score = parseInt(scoreInput.value);
+  const hasScore = !isNaN(score) && score >= 0 && score <= 14;
+
+  document.getElementById(`confirm-btn-${gameIdx}`).disabled = !(hasWinner && hasScore);
+}
+
+// Attach input listener for score validation
+document.addEventListener('input', (e) => {
+  if (e.target.id && e.target.id.startsWith('loser-score-')) {
+    const idx = parseInt(e.target.id.split('-').pop());
+    checkConfirmEnabled(idx);
+  }
+});
+
+function confirmGame(gameIdx) {
+  const winner = selectedWinners[gameIdx];
+  const loserScore = parseInt(document.getElementById(`loser-score-${gameIdx}`).value);
+
+  results[gameIdx] = { winner, loserScore };
+  currentGame++;
+
+  if (currentGame >= schedule.length) {
+    // All games done
+    showFinalScreen();
+  } else {
+    renderGames();
+    updateLeaderboard();
+  }
+}
+
+// --- Leaderboard ---
+
+function getStats() {
+  const stats = {};
+  for (let i = 0; i < players.length; i++) {
+    stats[i] = { name: players[i], wins: 0, losses: 0, points: 0, gamesPlayed: 0 };
+  }
+
+  for (let i = 0; i < results.length; i++) {
+    if (!results[i]) continue;
+    const g = schedule[i];
+    const r = results[i];
+    const winTeam = r.winner === 1 ? g.team1 : g.team2;
+    const loseTeam = r.winner === 1 ? g.team2 : g.team1;
+
+    for (const p of winTeam) {
+      stats[p].wins++;
+      stats[p].points += 15;
+      stats[p].gamesPlayed++;
+    }
+    for (const p of loseTeam) {
+      stats[p].losses++;
+      stats[p].points += r.loserScore;
+      stats[p].gamesPlayed++;
+    }
+  }
+
+  return Object.values(stats).sort((a, b) => {
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    return b.points - a.points;
+  });
+}
+
+function updateLeaderboard() {
+  renderLeaderboardTable('leaderboard-body');
+}
+
+function renderLeaderboardTable(tableId) {
+  const tbody = document.getElementById(tableId);
+  const sorted = getStats();
+  tbody.innerHTML = '';
+
+  sorted.forEach((s, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="rank">${i + 1}</td>
+      <td class="name">${s.name}</td>
+      <td class="wins">${s.wins}</td>
+      <td class="losses">${s.losses}</td>
+      <td class="points">${s.points}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Final screen ---
+
+function showFinalScreen() {
+  const sorted = getStats();
+
+  // Podium
+  const podium = document.getElementById('podium');
+  const order = [1, 0, 2]; // 2nd, 1st, 3rd
+  podium.innerHTML = '';
+
+  order.forEach(rank => {
+    if (!sorted[rank]) return;
+    const s = sorted[rank];
+    const div = document.createElement('div');
+    div.className = 'podium-item';
+    div.innerHTML = `
+      <div class="podium-name">${s.name}</div>
+      <div class="podium-stats">${s.wins}W ${s.points}pts</div>
+      <div class="podium-bar p${rank + 1}">
+        <div class="podium-rank">${rank + 1}</div>
+      </div>
+    `;
+    podium.appendChild(div);
+  });
+
+  renderLeaderboardTable('final-leaderboard-body');
+  showScreen(screenFinal);
+}
+
+function resetToNames() {
+  selectedWinners = {};
+  showScreen(screenNames);
+}
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById(`player-${i}`).value = '';
+  }
+  document.getElementById('btn-start').disabled = true;
+  resetToNames();
+});
+
+// Init
+initPlayerInputs();
+</script>
+</body>
+</html>
