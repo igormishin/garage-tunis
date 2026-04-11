@@ -50,7 +50,6 @@ h1 {
   margin-bottom: 24px;
 }
 
-/* Screens */
 .screen { display: none; }
 .screen.active { display: block; animation: fadeIn 0.3s ease; }
 
@@ -99,12 +98,45 @@ input[type="text"] {
   transition: border-color 0.2s;
 }
 
-input[type="text"]:focus {
-  border-color: var(--sand);
+input[type="text"]:focus { border-color: var(--sand); }
+input[type="text"]::placeholder { color: var(--text-dim); }
+
+/* Tournament name */
+.tournament-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-input[type="text"]::placeholder {
-  color: var(--text-dim);
+.tournament-name-row input {
+  flex: 1;
+  padding: 14px 16px;
+  border: 2px solid var(--card);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--sand);
+  font-size: 1.1rem;
+  font-weight: 700;
+  outline: none;
+  text-align: center;
+}
+
+.tournament-name-row input:focus { border-color: var(--sand); }
+
+.btn-shuffle {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--card);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--sand);
+  font-size: 1.2rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Buttons */
@@ -153,13 +185,8 @@ input[type="text"]::placeholder {
   transition: border-color 0.3s;
 }
 
-.game-card.current {
-  border-color: var(--sand);
-}
-
-.game-card.completed {
-  opacity: 0.7;
-}
+.game-card.current { border-color: var(--sand); }
+.game-card.completed { opacity: 0.7; }
 
 .game-header {
   display: flex;
@@ -180,9 +207,7 @@ input[type="text"]::placeholder {
   color: var(--text-dim);
 }
 
-.game-body {
-  padding: 16px;
-}
+.game-body { padding: 16px; }
 
 .game-teams {
   display: flex;
@@ -205,15 +230,8 @@ input[type="text"]::placeholder {
   line-height: 1.3;
 }
 
-.team-label.winner {
-  border-color: var(--green);
-  color: var(--green);
-}
-
-.team-label.loser {
-  border-color: var(--accent);
-  opacity: 0.6;
-}
+.team-label.winner { border-color: var(--green); color: var(--green); }
+.team-label.loser { border-color: var(--accent); opacity: 0.6; }
 
 .vs-label {
   font-weight: 700;
@@ -245,13 +263,8 @@ input[type="number"] {
 }
 
 input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-}
-
-input[type="number"]:focus {
-  border-color: var(--sand);
-}
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus { border-color: var(--sand); }
 
 .score-colon {
   font-size: 1.4rem;
@@ -274,10 +287,7 @@ input[type="number"]:focus {
   color: var(--text-dim);
 }
 
-.game-result-summary .team.winner {
-  color: var(--green);
-}
-
+.game-result-summary .team.winner { color: var(--green); }
 .game-result-summary .team-left { text-align: left; }
 .game-result-summary .team-right { text-align: right; }
 
@@ -287,6 +297,13 @@ input[type="number"]:focus {
   font-size: 1rem;
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+.game-time {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-align: right;
+  padding: 0 14px 8px;
 }
 
 /* Leaderboard */
@@ -327,11 +344,7 @@ input[type="number"]:focus {
   font-weight: 700;
 }
 
-.lb-table .rank {
-  font-weight: 700;
-  width: 30px;
-}
-
+.lb-table .rank { font-weight: 700; width: 30px; }
 .lb-table .name { font-weight: 600; }
 .lb-table .wins { color: var(--green); text-align: center; }
 .lb-table .losses { color: var(--accent); text-align: center; }
@@ -345,10 +358,18 @@ input[type="number"]:focus {
   text-align: center;
   font-size: 1.4rem;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   background: linear-gradient(135deg, var(--sand), var(--accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.final-tournament-name {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--sand);
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .podium {
@@ -381,29 +402,116 @@ input[type="number"]:focus {
 .podium-bar.p2 { height: 100px; background: linear-gradient(to top, #8899aa, #6c7a89); }
 .podium-bar.p3 { height: 70px; background: linear-gradient(to top, #cd7f32, #a0522d); }
 
-.podium-rank {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: rgba(255,255,255,0.9);
-}
-
-.podium-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.podium-stats {
-  font-size: 0.7rem;
-  color: var(--text-dim);
-  text-align: center;
-}
+.podium-rank { font-size: 1.5rem; font-weight: 900; color: rgba(255,255,255,0.9); }
+.podium-name { font-size: 0.85rem; font-weight: 700; text-align: center; }
+.podium-stats { font-size: 0.7rem; color: var(--text-dim); text-align: center; }
 
 .games-played-note {
   text-align: center;
   color: var(--text-dim);
   font-size: 0.8rem;
   margin-bottom: 16px;
+}
+
+/* History screen */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.history-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.history-card:active { border-color: var(--sand); }
+
+.history-card-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--sand);
+  margin-bottom: 4px;
+}
+
+.history-card-meta {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-card-winner {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.history-card-date {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.history-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.history-delete:hover, .history-delete:active { opacity: 1; }
+
+.empty-history {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 40px 0;
+  font-size: 0.9rem;
+}
+
+/* Detail screen */
+.detail-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.detail-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--sand);
+  margin-bottom: 4px;
+}
+
+.detail-meta {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.detail-games {
+  margin-top: 16px;
+}
+
+.detail-games h2 {
+  font-size: 1rem;
+  color: var(--sand);
+  margin-bottom: 10px;
 }
 </style>
 </head>
@@ -414,14 +522,18 @@ input[type="number"]:focus {
 
   <!-- Screen 1: Player Names -->
   <div id="screen-names" class="screen active">
+    <div class="tournament-name-row">
+      <input type="text" id="tournament-name" placeholder="Название турнира">
+      <button class="btn-shuffle" id="btn-shuffle" onclick="shuffleName()">🎲</button>
+    </div>
     <div class="player-inputs" id="player-inputs"></div>
     <button class="btn btn-primary" id="btn-start" disabled>Начать турнир</button>
+    <button class="btn btn-secondary" id="btn-history" onclick="showHistory()">Результаты турниров</button>
   </div>
 
-  <!-- Screen 2: Current Game + Scoring -->
+  <!-- Screen 2: Current Game -->
   <div id="screen-games" class="screen">
     <div id="games-list"></div>
-
     <div class="leaderboard" id="leaderboard-section">
       <h2>Таблица</h2>
       <table class="lb-table">
@@ -443,6 +555,7 @@ input[type="number"]:focus {
   <div id="screen-final" class="screen">
     <div class="trophy">🏐</div>
     <div class="final-title">Турнир завершён!</div>
+    <div id="final-tournament-name" class="final-tournament-name"></div>
     <div id="games-played-note" class="games-played-note"></div>
     <div id="podium" class="podium"></div>
     <div class="leaderboard">
@@ -463,13 +576,48 @@ input[type="number"]:focus {
     </div>
     <button class="btn btn-primary" id="btn-restart">Новый турнир</button>
   </div>
+
+  <!-- Screen 4: History -->
+  <div id="screen-history" class="screen">
+    <div id="history-list" class="history-list"></div>
+    <button class="btn btn-secondary" onclick="showScreen(screenNames)">Назад</button>
+  </div>
+
+  <!-- Screen 5: Tournament Detail -->
+  <div id="screen-detail" class="screen">
+    <div id="detail-content"></div>
+    <button class="btn btn-secondary" onclick="showHistory()">Назад</button>
+  </div>
 </div>
 
 <script>
 // ============================================================
-// PRE-COMPUTED OPTIMAL 12-GAME SCHEDULE (generated by simulated annealing)
-// Indices 0-5 map to players. 15/15 partner pairs, 15/15 opponent pairs.
-// Each player: 8 games, 4 rests (perfectly balanced).
+// TOURNAMENT NAMES
+// ============================================================
+
+const TOURNAMENT_NAMES = [
+  'Песчаное месиво',
+  'Песок в глазах',
+  'Пляжная буря',
+  'Солнечный удар',
+  'Песчаные войны',
+  'Мяч на закате',
+  'Сетка горит',
+  'Пляжный армагеддон',
+  'Загар чемпионов',
+  'Волна победы',
+];
+
+function randomTournamentName() {
+  return TOURNAMENT_NAMES[Math.floor(Math.random() * TOURNAMENT_NAMES.length)];
+}
+
+function shuffleName() {
+  document.getElementById('tournament-name').value = randomTournamentName();
+}
+
+// ============================================================
+// SCHEDULE
 // ============================================================
 
 const SCHEDULE_TEMPLATE = [
@@ -488,13 +636,40 @@ const SCHEDULE_TEMPLATE = [
 ];
 
 // ============================================================
+// STORAGE
+// ============================================================
+
+function loadTournaments() {
+  try {
+    return JSON.parse(localStorage.getItem('bv_tournaments') || '[]');
+  } catch { return []; }
+}
+
+function saveTournaments(list) {
+  localStorage.setItem('bv_tournaments', JSON.stringify(list));
+}
+
+function saveTournament(tournament) {
+  const list = loadTournaments();
+  list.unshift(tournament);
+  saveTournaments(list);
+}
+
+function deleteTournament(id) {
+  const list = loadTournaments().filter(t => t.id !== id);
+  saveTournaments(list);
+}
+
+// ============================================================
 // APP STATE
 // ============================================================
 
 let players = [];
 let schedule = [];
-let results = []; // { score1: number, score2: number }
+let gameResults = []; // { score1, score2, time }
 let currentGame = 0;
+let tournamentName = '';
+let tournamentStartedAt = null;
 
 // ============================================================
 // UI
@@ -503,11 +678,24 @@ let currentGame = 0;
 const screenNames = document.getElementById('screen-names');
 const screenGames = document.getElementById('screen-games');
 const screenFinal = document.getElementById('screen-final');
+const screenHistory = document.getElementById('screen-history');
+const screenDetail = document.getElementById('screen-detail');
+const allScreens = [screenNames, screenGames, screenFinal, screenHistory, screenDetail];
 
 function showScreen(screen) {
-  [screenNames, screenGames, screenFinal].forEach(s => s.classList.remove('active'));
+  allScreens.forEach(s => s.classList.remove('active'));
   screen.classList.add('active');
   window.scrollTo(0, 0);
+}
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('ru', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 // --- Screen 1: Player names ---
@@ -524,15 +712,20 @@ function initPlayerInputs() {
     container.appendChild(div);
   }
 
-  container.addEventListener('input', () => {
-    const filled = Array.from({ length: 6 }, (_, i) =>
-      document.getElementById(`player-${i + 1}`).value.trim()
-    ).every(v => v.length > 0);
-    document.getElementById('btn-start').disabled = !filled;
-  });
+  container.addEventListener('input', checkStartEnabled);
+  document.getElementById('tournament-name').addEventListener('input', checkStartEnabled);
+}
+
+function checkStartEnabled() {
+  const nameOk = document.getElementById('tournament-name').value.trim().length > 0;
+  const playersOk = Array.from({ length: 6 }, (_, i) =>
+    document.getElementById(`player-${i + 1}`).value.trim()
+  ).every(v => v.length > 0);
+  document.getElementById('btn-start').disabled = !(nameOk && playersOk);
 }
 
 document.getElementById('btn-start').addEventListener('click', () => {
+  tournamentName = document.getElementById('tournament-name').value.trim();
   players = Array.from({ length: 6 }, (_, i) =>
     document.getElementById(`player-${i + 1}`).value.trim()
   );
@@ -540,24 +733,24 @@ document.getElementById('btn-start').addEventListener('click', () => {
   schedule = SCHEDULE_TEMPLATE.map(g => ({
     team1: [...g.team1], team2: [...g.team2], rest: [...g.rest]
   }));
-  results = [];
+  gameResults = [];
   currentGame = 0;
+  tournamentStartedAt = new Date().toISOString();
 
   renderCurrentGame();
   updateLeaderboard();
   showScreen(screenGames);
 });
 
-// --- Screen 2: Games (one at a time) ---
+// --- Screen 2: Games ---
 
 function renderCurrentGame() {
   const container = document.getElementById('games-list');
   container.innerHTML = '';
 
-  // Show completed games (collapsed)
   for (let i = 0; i < currentGame; i++) {
     const g = schedule[i];
-    const r = results[i];
+    const r = gameResults[i];
     if (!r) continue;
 
     const card = document.createElement('div');
@@ -566,7 +759,6 @@ function renderCurrentGame() {
     const t1names = g.team1.map(idx => players[idx]).join(' + ');
     const t2names = g.team2.map(idx => players[idx]).join(' + ');
     const restNames = g.rest.map(idx => players[idx]).join(', ');
-    const winTeam = r.score1 > r.score2 ? t1names : t2names;
 
     card.innerHTML = `
       <div class="game-header">
@@ -578,11 +770,11 @@ function renderCurrentGame() {
         <span class="score">${r.score1}:${r.score2}</span>
         <span class="team team-right ${r.score2 > r.score1 ? 'winner' : ''}">${t2names}</span>
       </div>
+      ${r.time ? `<div class="game-time">${formatTime(r.time)}</div>` : ''}
     `;
     container.appendChild(card);
   }
 
-  // Show current game (if not finished)
   if (currentGame < schedule.length) {
     const g = schedule[currentGame];
     const i = currentGame;
@@ -628,7 +820,6 @@ function checkConfirmEnabled(gameIdx) {
 
   document.getElementById(`confirm-btn-${gameIdx}`).disabled = !valid;
 
-  // Highlight winner/loser
   const l1 = document.getElementById(`team1-label-${gameIdx}`);
   const l2 = document.getElementById(`team2-label-${gameIdx}`);
   l1.classList.remove('winner', 'loser');
@@ -651,11 +842,11 @@ function confirmGame(gameIdx) {
   const score1 = parseInt(document.getElementById(`score1-${gameIdx}`).value);
   const score2 = parseInt(document.getElementById(`score2-${gameIdx}`).value);
 
-  results[gameIdx] = { score1, score2 };
+  gameResults[gameIdx] = { score1, score2, time: new Date().toISOString() };
   currentGame++;
 
   if (currentGame >= schedule.length) {
-    showFinalScreen();
+    finishAndSave();
   } else {
     renderCurrentGame();
     updateLeaderboard();
@@ -663,7 +854,6 @@ function confirmGame(gameIdx) {
 }
 
 function finishTournament() {
-  // If current game has valid complete scores, save it before finishing
   if (currentGame < schedule.length) {
     const s1el = document.getElementById(`score1-${currentGame}`);
     const s2el = document.getElementById(`score2-${currentGame}`);
@@ -671,27 +861,40 @@ function finishTournament() {
       const v1 = parseInt(s1el.value);
       const v2 = parseInt(s2el.value);
       if (!isNaN(v1) && !isNaN(v2) && v1 >= 0 && v2 >= 0 && v1 !== v2) {
-        results[currentGame] = { score1: v1, score2: v2 };
+        gameResults[currentGame] = { score1: v1, score2: v2, time: new Date().toISOString() };
       }
     }
   }
+  finishAndSave();
+}
+
+function finishAndSave() {
+  const tournament = {
+    id: Date.now(),
+    name: tournamentName,
+    players: [...players],
+    schedule: schedule.map(g => ({ team1: [...g.team1], team2: [...g.team2], rest: [...g.rest] })),
+    results: gameResults.filter(r => r != null),
+    startedAt: tournamentStartedAt,
+    finishedAt: new Date().toISOString(),
+  };
+  saveTournament(tournament);
   showFinalScreen();
 }
 
 // --- Leaderboard ---
 
-function getStats() {
+function getStatsFromData(playerNames, sched, res) {
   const stats = {};
-  for (let i = 0; i < players.length; i++) {
-    stats[i] = { name: players[i], wins: 0, losses: 0, points: 0, games: 0 };
+  for (let i = 0; i < playerNames.length; i++) {
+    stats[i] = { name: playerNames[i], wins: 0, losses: 0, points: 0, games: 0 };
   }
 
-  for (let i = 0; i < results.length; i++) {
-    if (!results[i]) continue;
-    const g = schedule[i];
-    const r = results[i];
+  for (let i = 0; i < res.length; i++) {
+    if (!res[i]) continue;
+    const g = sched[i];
+    const r = res[i];
     const t1won = r.score1 > r.score2;
-
     const winTeam = t1won ? g.team1 : g.team2;
     const loseTeam = t1won ? g.team2 : g.team1;
     const winScore = t1won ? r.score1 : r.score2;
@@ -715,13 +918,16 @@ function getStats() {
   });
 }
 
-function updateLeaderboard() {
-  renderLeaderboardTable('leaderboard-body');
+function getStats() {
+  return getStatsFromData(players, schedule, gameResults);
 }
 
-function renderLeaderboardTable(tableId, showGames = false) {
+function updateLeaderboard() {
+  renderLeaderboardTable('leaderboard-body', getStats());
+}
+
+function renderLeaderboardTable(tableId, sorted, showGames = false) {
   const tbody = document.getElementById(tableId);
-  const sorted = getStats();
   tbody.innerHTML = '';
 
   sorted.forEach((s, i) => {
@@ -742,14 +948,14 @@ function renderLeaderboardTable(tableId, showGames = false) {
 
 function showFinalScreen() {
   const sorted = getStats();
-  const gamesPlayed = results.filter(r => r != null).length;
+  const gamesPlayed = gameResults.filter(r => r != null).length;
 
+  document.getElementById('final-tournament-name').textContent = tournamentName;
   document.getElementById('games-played-note').textContent =
     `Сыграно игр: ${gamesPlayed} из ${schedule.length}`;
 
-  // Podium
   const podium = document.getElementById('podium');
-  const order = [1, 0, 2]; // 2nd, 1st, 3rd
+  const order = [1, 0, 2];
   podium.innerHTML = '';
 
   order.forEach(rank => {
@@ -767,24 +973,152 @@ function showFinalScreen() {
     podium.appendChild(div);
   });
 
-  renderLeaderboardTable('final-leaderboard-body', true);
+  renderLeaderboardTable('final-leaderboard-body', sorted, true);
   showScreen(screenFinal);
 }
 
-function resetToNames() {
-  showScreen(screenNames);
+// --- History screen ---
+
+function showHistory() {
+  const list = loadTournaments();
+  const container = document.getElementById('history-list');
+  container.innerHTML = '';
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-history">Пока нет завершённых турниров</div>';
+    showScreen(screenHistory);
+    return;
+  }
+
+  for (const t of list) {
+    const stats = getStatsFromData(t.players, t.schedule, t.results);
+    const winner = stats[0];
+    const gamesPlayed = t.results.length;
+
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    card.innerHTML = `
+      <div class="history-card-name">${t.name}</div>
+      <div class="history-card-meta">
+        <span>${gamesPlayed} игр, ${t.players.length} игроков</span>
+        <span class="history-card-winner">${winner.name}</span>
+      </div>
+      <div class="history-card-date">${formatDate(t.startedAt)}</div>
+      <button class="history-delete" onclick="event.stopPropagation(); confirmDelete(${t.id})">✕</button>
+    `;
+    card.addEventListener('click', () => showDetail(t.id));
+    container.appendChild(card);
+  }
+
+  showScreen(screenHistory);
 }
+
+function confirmDelete(id) {
+  if (confirm('Удалить этот турнир?')) {
+    deleteTournament(id);
+    showHistory();
+  }
+}
+
+// --- Detail screen ---
+
+function showDetail(id) {
+  const list = loadTournaments();
+  const t = list.find(x => x.id === id);
+  if (!t) return;
+
+  const stats = getStatsFromData(t.players, t.schedule, t.results);
+  const container = document.getElementById('detail-content');
+
+  let html = `
+    <div class="detail-header">
+      <div class="detail-name">${t.name}</div>
+      <div class="detail-meta">
+        ${formatDate(t.startedAt)} — ${formatTime(t.finishedAt)}
+        · ${t.results.length} игр
+      </div>
+    </div>
+  `;
+
+  // Leaderboard
+  html += `
+    <div class="leaderboard">
+      <h2>Итоговая таблица</h2>
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th class="rank">#</th>
+            <th class="name">Игрок</th>
+            <th class="wins">Побед</th>
+            <th class="losses">Пораж</th>
+            <th class="points">Очки</th>
+            <th class="games">Игр</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  stats.forEach((s, i) => {
+    html += `
+      <tr ${i === 0 ? 'style="color:var(--sand);font-weight:700"' : ''}>
+        <td class="rank">${i + 1}</td>
+        <td class="name">${s.name}</td>
+        <td class="wins">${s.wins}</td>
+        <td class="losses">${s.losses}</td>
+        <td class="points">${s.points}</td>
+        <td class="games">${s.games}</td>
+      </tr>
+    `;
+  });
+
+  html += '</tbody></table></div>';
+
+  // Games list
+  html += '<div class="detail-games"><h2>Все игры</h2>';
+
+  for (let i = 0; i < t.results.length; i++) {
+    const g = t.schedule[i];
+    const r = t.results[i];
+    const t1names = g.team1.map(idx => t.players[idx]).join(' + ');
+    const t2names = g.team2.map(idx => t.players[idx]).join(' + ');
+    const restNames = g.rest.map(idx => t.players[idx]).join(', ');
+
+    html += `
+      <div class="game-card completed" style="opacity:1">
+        <div class="game-header">
+          <span class="game-num">Игра ${i + 1}</span>
+          <span class="game-rest">отдых: ${restNames}</span>
+        </div>
+        <div class="game-result-summary">
+          <span class="team team-left ${r.score1 > r.score2 ? 'winner' : ''}">${t1names}</span>
+          <span class="score">${r.score1}:${r.score2}</span>
+          <span class="team team-right ${r.score2 > r.score1 ? 'winner' : ''}">${t2names}</span>
+        </div>
+        ${r.time ? `<div class="game-time">${formatTime(r.time)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  html += '</div>';
+
+  container.innerHTML = html;
+  showScreen(screenDetail);
+}
+
+// --- Reset ---
 
 document.getElementById('btn-restart').addEventListener('click', () => {
   for (let i = 1; i <= 6; i++) {
     document.getElementById(`player-${i}`).value = '';
   }
+  document.getElementById('tournament-name').value = randomTournamentName();
   document.getElementById('btn-start').disabled = true;
-  resetToNames();
+  showScreen(screenNames);
 });
 
-// Init
+// --- Init ---
 initPlayerInputs();
+document.getElementById('tournament-name').value = randomTournamentName();
 </script>
 </body>
 </html>
