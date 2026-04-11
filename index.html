@@ -514,6 +514,7 @@ input[type="number"]:focus { border-color: var(--sand); }
   margin-bottom: 10px;
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -636,28 +637,41 @@ const SCHEDULE_TEMPLATE = [
 ];
 
 // ============================================================
-// STORAGE
+// SUPABASE
 // ============================================================
 
-function loadTournaments() {
-  try {
-    return JSON.parse(localStorage.getItem('bv_tournaments') || '[]');
-  } catch { return []; }
+const SUPABASE_URL = 'https://bukyxdybwxwtpzywdlhu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_OQ5EqGIdYW-lqHDzWbOJ1A__ACJO2wF';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================================
+// STORAGE (Supabase)
+// ============================================================
+
+async function loadTournaments() {
+  const { data, error } = await db
+    .from('tournaments')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.error('Load error:', error); return []; }
+  return data;
 }
 
-function saveTournaments(list) {
-  localStorage.setItem('bv_tournaments', JSON.stringify(list));
+async function saveTournament(tournament) {
+  const { error } = await db.from('tournaments').insert({
+    name: tournament.name,
+    players: tournament.players,
+    schedule: tournament.schedule,
+    results: tournament.results,
+    started_at: tournament.startedAt,
+    finished_at: tournament.finishedAt,
+  });
+  if (error) console.error('Save error:', error);
 }
 
-function saveTournament(tournament) {
-  const list = loadTournaments();
-  list.unshift(tournament);
-  saveTournaments(list);
-}
-
-function deleteTournament(id) {
-  const list = loadTournaments().filter(t => t.id !== id);
-  saveTournaments(list);
+async function deleteTournament(id) {
+  const { error } = await db.from('tournaments').delete().eq('id', id);
+  if (error) console.error('Delete error:', error);
 }
 
 // ============================================================
@@ -868,9 +882,8 @@ function finishTournament() {
   finishAndSave();
 }
 
-function finishAndSave() {
+async function finishAndSave() {
   const tournament = {
-    id: Date.now(),
     name: tournamentName,
     players: [...players],
     schedule: schedule.map(g => ({ team1: [...g.team1], team2: [...g.team2], rest: [...g.rest] })),
@@ -878,7 +891,7 @@ function finishAndSave() {
     startedAt: tournamentStartedAt,
     finishedAt: new Date().toISOString(),
   };
-  saveTournament(tournament);
+  await saveTournament(tournament);
   showFinalScreen();
 }
 
@@ -979,8 +992,8 @@ function showFinalScreen() {
 
 // --- History screen ---
 
-function showHistory() {
-  const list = loadTournaments();
+async function showHistory() {
+  const list = await loadTournaments();
   const container = document.getElementById('history-list');
   container.innerHTML = '';
 
@@ -990,10 +1003,14 @@ function showHistory() {
     return;
   }
 
+  // Cache for detail view
+  window._tournamentsCache = list;
+
   for (const t of list) {
     const stats = getStatsFromData(t.players, t.schedule, t.results);
     const winner = stats[0];
     const gamesPlayed = t.results.length;
+    const dateStr = formatDate(t.started_at || t.startedAt);
 
     const card = document.createElement('div');
     card.className = 'history-card';
@@ -1003,7 +1020,7 @@ function showHistory() {
         <span>${gamesPlayed} игр, ${t.players.length} игроков</span>
         <span class="history-card-winner">${winner.name}</span>
       </div>
-      <div class="history-card-date">${formatDate(t.startedAt)}</div>
+      <div class="history-card-date">${dateStr}</div>
       <button class="history-delete" onclick="event.stopPropagation(); confirmDelete(${t.id})">✕</button>
     `;
     card.addEventListener('click', () => showDetail(t.id));
@@ -1013,9 +1030,9 @@ function showHistory() {
   showScreen(screenHistory);
 }
 
-function confirmDelete(id) {
+async function confirmDelete(id) {
   if (confirm('Удалить этот турнир?')) {
-    deleteTournament(id);
+    await deleteTournament(id);
     showHistory();
   }
 }
@@ -1023,9 +1040,12 @@ function confirmDelete(id) {
 // --- Detail screen ---
 
 function showDetail(id) {
-  const list = loadTournaments();
+  const list = window._tournamentsCache || [];
   const t = list.find(x => x.id === id);
   if (!t) return;
+
+  const startedAt = t.started_at || t.startedAt;
+  const finishedAt = t.finished_at || t.finishedAt;
 
   const stats = getStatsFromData(t.players, t.schedule, t.results);
   const container = document.getElementById('detail-content');
@@ -1034,7 +1054,7 @@ function showDetail(id) {
     <div class="detail-header">
       <div class="detail-name">${t.name}</div>
       <div class="detail-meta">
-        ${formatDate(t.startedAt)} — ${formatTime(t.finishedAt)}
+        ${formatDate(startedAt)} — ${formatTime(finishedAt)}
         · ${t.results.length} игр
       </div>
     </div>
