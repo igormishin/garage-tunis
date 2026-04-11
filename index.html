@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Beach Volley 2×2</title>
+<title>Beach Volley Tunis</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -336,6 +336,7 @@ input[type="number"]:focus {
 .lb-table .wins { color: var(--green); text-align: center; }
 .lb-table .losses { color: var(--accent); text-align: center; }
 .lb-table .points { color: var(--sand); text-align: center; }
+.lb-table .games { color: var(--text-dim); text-align: center; }
 
 /* Final screen */
 .trophy { text-align: center; font-size: 3rem; margin-bottom: 12px; }
@@ -408,8 +409,8 @@ input[type="number"]:focus {
 </head>
 <body>
 <div class="container">
-  <h1>Beach Volley 2×2</h1>
-  <p class="subtitle">Турнир на 6 игроков</p>
+  <h1>Beach Volley Tunis</h1>
+  <p class="subtitle">Турнир на 5 / 6 игроков</p>
 
   <!-- Screen 1: Player Names -->
   <div id="screen-names" class="screen active">
@@ -428,8 +429,8 @@ input[type="number"]:focus {
           <tr>
             <th class="rank">#</th>
             <th class="name">Игрок</th>
-            <th class="wins">W</th>
-            <th class="losses">L</th>
+            <th class="wins">Побед</th>
+            <th class="losses">Пораж</th>
             <th class="points">Очки</th>
           </tr>
         </thead>
@@ -451,9 +452,10 @@ input[type="number"]:focus {
           <tr>
             <th class="rank">#</th>
             <th class="name">Игрок</th>
-            <th class="wins">W</th>
-            <th class="losses">L</th>
+            <th class="wins">Побед</th>
+            <th class="losses">Пораж</th>
             <th class="points">Очки</th>
+            <th class="games">Игр</th>
           </tr>
         </thead>
         <tbody id="final-leaderboard-body"></tbody>
@@ -681,7 +683,7 @@ function finishTournament() {
 function getStats() {
   const stats = {};
   for (let i = 0; i < players.length; i++) {
-    stats[i] = { name: players[i], wins: 0, losses: 0, points: 0 };
+    stats[i] = { name: players[i], wins: 0, losses: 0, points: 0, games: 0 };
   }
 
   for (let i = 0; i < results.length; i++) {
@@ -698,10 +700,12 @@ function getStats() {
     for (const p of winTeam) {
       stats[p].wins++;
       stats[p].points += winScore;
+      stats[p].games++;
     }
     for (const p of loseTeam) {
       stats[p].losses++;
       stats[p].points += loseScore;
+      stats[p].games++;
     }
   }
 
@@ -715,7 +719,7 @@ function updateLeaderboard() {
   renderLeaderboardTable('leaderboard-body');
 }
 
-function renderLeaderboardTable(tableId) {
+function renderLeaderboardTable(tableId, showGames = false) {
   const tbody = document.getElementById(tableId);
   const sorted = getStats();
   tbody.innerHTML = '';
@@ -728,6 +732,7 @@ function renderLeaderboardTable(tableId) {
       <td class="wins">${s.wins}</td>
       <td class="losses">${s.losses}</td>
       <td class="points">${s.points}</td>
+      ${showGames ? `<td class="games">${s.games}</td>` : ''}
     `;
     tbody.appendChild(tr);
   });
@@ -762,7 +767,7 @@ function showFinalScreen() {
     podium.appendChild(div);
   });
 
-  renderLeaderboardTable('final-leaderboard-body');
+  renderLeaderboardTable('final-leaderboard-body', true);
   showScreen(screenFinal);
 }
 
