@@ -566,6 +566,7 @@ input[type="number"]:focus { border-color: var(--sand); }
     <div class="final-title">Турнир завершён!</div>
     <div id="final-tournament-name" class="final-tournament-name"></div>
     <div id="games-played-note" class="games-played-note"></div>
+    <div id="mvp-note" style="text-align:center;margin-bottom:16px"></div>
     <div id="podium" class="podium"></div>
     <div class="leaderboard">
       <h2>Итоговая таблица</h2>
@@ -849,6 +850,7 @@ function renderCurrentGame() {
         <span class="score">${r.score1}:${r.score2}</span>
         <span class="team team-right ${r.score2 > r.score1 ? 'winner' : ''}">${t2names}</span>
       </div>
+      ${r.comment ? `<div style="font-size:0.75rem;color:var(--text-dim);padding:0 14px 4px;text-align:right;font-style:italic">${r.comment}</div>` : ''}
       ${r.time ? `<div class="game-time">${formatTime(r.time)}</div>` : ''}
     `;
     container.appendChild(card);
@@ -885,6 +887,14 @@ function renderCurrentGame() {
       </div>
     `;
     container.appendChild(card);
+
+    if (i === 0 && !shownTip) {
+      shownTip = true;
+      const tip = document.createElement('div');
+      tip.style.cssText = 'background:var(--card);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:0.8rem;color:var(--text-dim);text-align:center;position:relative';
+      tip.innerHTML = 'Введите счёт обеих команд. Можно закончить турнир досрочно <span onclick="this.parentElement.remove()" style="position:absolute;top:6px;right:10px;cursor:pointer;opacity:0.5">✕</span>';
+      container.insertBefore(tip, card);
+    }
   }
 }
 
@@ -917,11 +927,38 @@ document.addEventListener('input', (e) => {
   }
 });
 
+const COMMENTS_BLOWOUT = [
+  'Разгром! 💀', 'Это было больно 🤕', 'Кто-то явно не разминался 🥱',
+  'Без шансов 😵', 'Доминация! 👊', 'Можно было и не выходить 🫠',
+  'Песок в глазах у проигравших 🏖️', 'Тренер, замену! 🆘',
+];
+const COMMENTS_CLOSE = [
+  'Еле вытянули! 😰', 'На тоненького 🫣', 'Нервы как канаты 😬',
+  'Красивая борьба! 🔥', 'Могло качнуть в любую сторону ⚖️', 'Триллер! 🎬',
+  'Сердце выскакивает 💓', 'Это было жарко 🌶️',
+];
+const COMMENTS_NORMAL = [
+  'Уверенная победа 👍', 'Чистая работа ✨', 'Классика жанра 🏐',
+  'Достойная игра 🤝', 'Всё по делу 💪',
+];
+
+function getGameComment(score1, score2) {
+  const diff = Math.abs(score1 - score2);
+  let pool;
+  if (diff >= 6) pool = COMMENTS_BLOWOUT;
+  else if (diff <= 2) pool = COMMENTS_CLOSE;
+  else pool = COMMENTS_NORMAL;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+let shownTip = false;
+
 function confirmGame(gameIdx) {
   const score1 = parseInt(document.getElementById(`score1-${gameIdx}`).value);
   const score2 = parseInt(document.getElementById(`score2-${gameIdx}`).value);
 
-  gameResults[gameIdx] = { score1, score2, time: new Date().toISOString() };
+  const comment = getGameComment(score1, score2);
+  gameResults[gameIdx] = { score1, score2, time: new Date().toISOString(), comment };
   currentGame++;
 
   if (currentGame >= schedule.length) {
@@ -1025,6 +1062,30 @@ function renderLeaderboardTable(tableId, sorted, showGames = false) {
 
 // --- Final screen ---
 
+function getMVP(playerNames, sched, res) {
+  const stats = {};
+  for (let i = 0; i < playerNames.length; i++) {
+    stats[i] = { name: playerNames[i], totalPoints: 0, games: 0 };
+  }
+  for (let i = 0; i < res.length; i++) {
+    if (!res[i]) continue;
+    const g = sched[i];
+    const r = res[i];
+    const t1won = r.score1 > r.score2;
+    for (const p of g.team1) {
+      stats[p].totalPoints += r.score1;
+      stats[p].games++;
+    }
+    for (const p of g.team2) {
+      stats[p].totalPoints += r.score2;
+      stats[p].games++;
+    }
+  }
+  const arr = Object.values(stats).filter(s => s.games > 0);
+  arr.sort((a, b) => (b.totalPoints / b.games) - (a.totalPoints / a.games));
+  return arr[0];
+}
+
 function showFinalScreen() {
   const sorted = getStats();
   const gamesPlayed = gameResults.filter(r => r != null).length;
@@ -1032,6 +1093,15 @@ function showFinalScreen() {
   document.getElementById('final-tournament-name').textContent = tournamentName;
   document.getElementById('games-played-note').textContent =
     `Сыграно игр: ${gamesPlayed} из ${schedule.length}`;
+
+  const mvp = getMVP(players, schedule, gameResults);
+  const mvpEl = document.getElementById('mvp-note');
+  if (mvp) {
+    const avg = (mvp.totalPoints / mvp.games).toFixed(1);
+    mvpEl.innerHTML = `<span style="font-size:1.3rem">⭐</span> <span style="color:var(--sand);font-weight:700">MVP: ${mvp.name}</span> <span style="color:var(--text-dim);font-size:0.85rem">${avg} очков за игру</span>`;
+  } else {
+    mvpEl.innerHTML = '';
+  }
 
   const podium = document.getElementById('podium');
   const order = [1, 0, 2];
