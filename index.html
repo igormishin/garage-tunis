@@ -873,6 +873,7 @@ function renderCurrentGame() {
 
     const card = document.createElement('div');
     card.className = 'game-card completed';
+    card.dataset.gameIdx = i;
 
     const t1names = g.team1.map(idx => players[idx]).join(' + ');
     const t2names = g.team2.map(idx => players[idx]).join(' + ');
@@ -881,7 +882,10 @@ function renderCurrentGame() {
     card.innerHTML = `
       <div class="game-header">
         <span class="game-num">Игра ${i + 1}</span>
-        ${restNames ? `<span class="game-rest">отдых: ${restNames}</span>` : ''}
+        <div style="display:flex;align-items:center;gap:8px">
+          ${restNames ? `<span class="game-rest">отдых: ${restNames}</span>` : ''}
+          <button onclick="editGame(${i})" style="background:none;border:none;color:var(--text-dim);font-size:0.8rem;cursor:pointer;padding:2px 4px;opacity:0.6" title="Изменить счёт">✏️</button>
+        </div>
       </div>
       <div class="game-result-summary">
         <span class="team team-left ${r.score1 > r.score2 ? 'winner' : ''}">${t1names}</span>
@@ -1007,6 +1011,64 @@ function confirmGame(gameIdx) {
     renderCurrentGame();
     updateLeaderboard();
   }
+}
+
+function editGame(gameIdx) {
+  const g = schedule[gameIdx];
+  const r = gameResults[gameIdx];
+  const t1names = g.team1.map(idx => players[idx]).join(' + ');
+  const t2names = g.team2.map(idx => players[idx]).join(' + ');
+  const restNames = g.rest.map(idx => players[idx]).join(', ');
+
+  const card = document.querySelector(`#games-list [data-game-idx="${gameIdx}"]`);
+  if (!card) return;
+
+  card.innerHTML = `
+    <div class="game-header">
+      <span class="game-num">Игра ${gameIdx + 1}</span>
+      ${restNames ? `<span class="game-rest">отдых: ${restNames}</span>` : ''}
+    </div>
+    <div class="game-body">
+      <div class="game-teams">
+        <div class="team-label" id="edit-t1-${gameIdx}">${t1names}</div>
+        <span class="vs-label">vs</span>
+        <div class="team-label" id="edit-t2-${gameIdx}">${t2names}</div>
+      </div>
+      <div class="score-row">
+        <input type="number" id="edit-s1-${gameIdx}" min="0" value="${r.score1}" inputmode="numeric">
+        <span class="score-colon">:</span>
+        <input type="number" id="edit-s2-${gameIdx}" min="0" value="${r.score2}" inputmode="numeric">
+      </div>
+      <button class="btn btn-primary" id="edit-save-${gameIdx}" onclick="saveEdit(${gameIdx})">Сохранить</button>
+    </div>
+  `;
+
+  // Live winner highlight while editing
+  const onInput = () => {
+    const v1 = parseInt(document.getElementById(`edit-s1-${gameIdx}`).value);
+    const v2 = parseInt(document.getElementById(`edit-s2-${gameIdx}`).value);
+    const l1 = document.getElementById(`edit-t1-${gameIdx}`);
+    const l2 = document.getElementById(`edit-t2-${gameIdx}`);
+    l1.classList.remove('winner','loser'); l2.classList.remove('winner','loser');
+    if (!isNaN(v1) && !isNaN(v2) && v1 !== v2) {
+      l1.classList.add(v1 > v2 ? 'winner' : 'loser');
+      l2.classList.add(v2 > v1 ? 'winner' : 'loser');
+    }
+  };
+  document.getElementById(`edit-s1-${gameIdx}`).addEventListener('input', onInput);
+  document.getElementById(`edit-s2-${gameIdx}`).addEventListener('input', onInput);
+  onInput();
+}
+
+function saveEdit(gameIdx) {
+  const v1 = parseInt(document.getElementById(`edit-s1-${gameIdx}`).value);
+  const v2 = parseInt(document.getElementById(`edit-s2-${gameIdx}`).value);
+  if (isNaN(v1) || isNaN(v2) || v1 < 0 || v2 < 0 || v1 === v2) return;
+
+  const comment = getGameComment(v1, v2);
+  gameResults[gameIdx] = { ...gameResults[gameIdx], score1: v1, score2: v2, comment };
+  renderCurrentGame();
+  updateLeaderboard();
 }
 
 function finishTournament() {
