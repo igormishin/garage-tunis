@@ -23,6 +23,10 @@ create policy "Anyone can insert tournaments"
   on tournaments for insert
   with check (true);
 
+create policy "Anyone can update tournaments"
+  on tournaments for update
+  using (true);
+
 create policy "Anyone can delete tournaments"
   on tournaments for delete
   using (true);

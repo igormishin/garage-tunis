@@ -440,6 +440,23 @@ input[type="number"]:focus { border-color: var(--sand); }
   margin-bottom: 16px;
 }
 
+/* In-progress badge */
+.badge-inprogress {
+  display: inline-block;
+  background: rgba(46,204,113,0.15);
+  color: var(--green);
+  border: 1px solid rgba(46,204,113,0.3);
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  vertical-align: middle;
+}
+
+.history-card.in-progress {
+  border-color: rgba(46,204,113,0.25);
+}
+
 /* History screen */
 .history-list {
   display: flex;
@@ -556,7 +573,7 @@ input[type="number"]:focus { border-color: var(--sand); }
     </div>
     <div class="player-inputs" id="player-inputs"></div>
     <button class="btn btn-primary" id="btn-start" disabled>Начать турнир</button>
-    <button class="btn btn-secondary" id="btn-history" onclick="showHistory()">Результаты турниров</button>
+    <button class="btn btn-secondary" id="btn-history" onclick="showHistory()">Турниры</button>
     <button class="btn btn-secondary" style="margin-top:8px;font-size:0.85rem;opacity:0.7" onclick="showFeedback()">💬 Обратная связь</button>
   </div>
 
@@ -577,6 +594,9 @@ input[type="number"]:focus { border-color: var(--sand); }
         </thead>
         <tbody id="leaderboard-body"></tbody>
       </table>
+    </div>
+    <div style="text-align:center;margin-top:4px;padding-bottom:8px">
+      <button onclick="exitToMenu()" style="background:none;border:none;color:var(--text-dim);font-size:0.82rem;cursor:pointer;padding:10px 16px;opacity:0.7">↩ Сохранить и выйти в меню</button>
     </div>
   </div>
 
@@ -605,11 +625,12 @@ input[type="number"]:focus { border-color: var(--sand); }
       </table>
     </div>
     <button class="btn btn-primary" id="btn-restart">Новый турнир</button>
-    <button class="btn btn-secondary" onclick="showHistory()">Результаты турниров</button>
+    <button class="btn btn-secondary" onclick="showHistory()">Турниры</button>
   </div>
 
   <!-- Screen 4: History -->
   <div id="screen-history" class="screen">
+    <h2 style="color:var(--sand);margin-bottom:16px">Турниры</h2>
     <div id="history-list" class="history-list"></div>
     <button class="btn btn-secondary" onclick="showScreen(screenNames)">Назад</button>
   </div>
@@ -729,16 +750,29 @@ async function loadTournaments() {
   return data;
 }
 
-async function saveTournament(tournament) {
-  const { error } = await db.from('tournaments').insert({
-    name: tournament.name,
-    players: tournament.players,
-    schedule: tournament.schedule,
-    results: tournament.results,
-    started_at: tournament.startedAt,
-    finished_at: tournament.finishedAt,
-  });
-  if (error) console.error('Save error:', error);
+async function saveTournament(data) {
+  const { data: inserted, error } = await db.from('tournaments').insert({
+    name: data.name,
+    players: data.players,
+    schedule: data.schedule,
+    results: data.results,
+    started_at: data.startedAt,
+    finished_at: data.finishedAt || null,
+  }).select('id').single();
+  if (error) { console.error('Save error:', error); return null; }
+  return inserted?.id;
+}
+
+async function updateTournament(id, data) {
+  const { error } = await db.from('tournaments').update({
+    name: data.name,
+    players: data.players,
+    schedule: data.schedule,
+    results: data.results,
+    started_at: data.startedAt,
+    finished_at: data.finishedAt || null,
+  }).eq('id', id);
+  if (error) console.error('Update error:', error);
 }
 
 async function deleteTournament(id) {
@@ -756,6 +790,7 @@ let gameResults = []; // { score1, score2, time }
 let currentGame = 0;
 let tournamentName = '';
 let tournamentStartedAt = null;
+let currentTournamentId = null;
 
 // ============================================================
 // UI
@@ -844,6 +879,7 @@ function checkStartEnabled() {
 }
 
 document.getElementById('btn-start').addEventListener('click', () => {
+  currentTournamentId = null;
   tournamentName = document.getElementById('tournament-name').value.trim();
   players = getFilledPlayers();
 
@@ -879,13 +915,13 @@ function renderCurrentGame() {
     const t2names = g.team2.map(idx => players[idx]).join(' + ');
     const restNames = g.rest.map(idx => players[idx]).join(', ');
 
+    card.style.cursor = 'pointer';
+    card.title = 'Нажмите чтобы изменить счёт';
+    card.onclick = () => editGame(i);
     card.innerHTML = `
       <div class="game-header">
         <span class="game-num">Игра ${i + 1}</span>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${restNames ? `<span class="game-rest">отдых: ${restNames}</span>` : ''}
-          <button onclick="editGame(${i})" style="background:none;border:none;color:var(--text-dim);font-size:0.8rem;cursor:pointer;padding:2px 4px;opacity:0.6" title="Изменить счёт">✏️</button>
-        </div>
+        ${restNames ? `<span class="game-rest">отдых: ${restNames}</span>` : ''}
       </div>
       <div class="game-result-summary">
         <span class="team team-left ${r.score1 > r.score2 ? 'winner' : ''}">${t1names}</span>
@@ -1014,6 +1050,7 @@ function confirmGame(gameIdx) {
 }
 
 function editGame(gameIdx) {
+  if (document.getElementById(`edit-s1-${gameIdx}`)) return; // already editing
   const g = schedule[gameIdx];
   const r = gameResults[gameIdx];
   const t1names = g.team1.map(idx => players[idx]).join(' + ');
@@ -1086,17 +1123,52 @@ function finishTournament() {
   finishAndSave();
 }
 
-async function finishAndSave() {
-  const tournament = {
+function buildTournamentData(finishedAt) {
+  return {
     name: tournamentName,
     players: [...players],
     schedule: schedule.map(g => ({ team1: [...g.team1], team2: [...g.team2], rest: [...g.rest] })),
     results: gameResults.filter(r => r != null),
     startedAt: tournamentStartedAt,
-    finishedAt: new Date().toISOString(),
+    finishedAt: finishedAt || null,
   };
-  await saveTournament(tournament);
+}
+
+async function finishAndSave() {
+  const data = buildTournamentData(new Date().toISOString());
+  if (currentTournamentId) {
+    await updateTournament(currentTournamentId, data);
+  } else {
+    await saveTournament(data);
+  }
+  currentTournamentId = null;
   showFinalScreen();
+}
+
+async function exitToMenu() {
+  const data = buildTournamentData(null);
+  if (currentTournamentId) {
+    await updateTournament(currentTournamentId, data);
+  } else {
+    const id = await saveTournament(data);
+    currentTournamentId = id;
+  }
+  showScreen(screenNames);
+}
+
+function resumeTournament(t) {
+  currentTournamentId = t.id;
+  tournamentName = t.name;
+  players = [...t.players];
+  schedule = t.schedule.map(g => ({ team1: [...g.team1], team2: [...g.team2], rest: [...g.rest] }));
+  gameResults = [...(t.results || [])];
+  currentGame = gameResults.length;
+  tournamentStartedAt = t.started_at || t.startedAt;
+  shownTip = true; // don't show tooltip when resuming
+
+  renderCurrentGame();
+  updateLeaderboard();
+  showScreen(screenGames);
 }
 
 // --- Leaderboard ---
@@ -1236,32 +1308,50 @@ async function showHistory() {
   container.innerHTML = '';
 
   if (list.length === 0) {
-    container.innerHTML = '<div class="empty-history">Пока нет завершённых турниров</div>';
+    container.innerHTML = '<div class="empty-history">Пока нет турниров</div>';
     showScreen(screenHistory);
     return;
   }
 
-  // Cache for detail view
   window._tournamentsCache = list;
 
-  for (const t of list) {
-    const stats = getStatsFromData(t.players, t.schedule, t.results);
-    const winner = stats[0];
+  // Sort: in-progress first, then by date
+  const inProgress = list.filter(t => !t.finished_at);
+  const finished = list.filter(t => t.finished_at);
+
+  for (const t of [...inProgress, ...finished]) {
+    const isInProgress = !t.finished_at;
     const gamesPlayed = t.results.length;
     const dateStr = formatDate(t.started_at || t.startedAt);
 
     const card = document.createElement('div');
-    card.className = 'history-card';
-    card.innerHTML = `
-      <div class="history-card-name">${t.name}</div>
-      <div class="history-card-meta">
-        <span>${t.players.length} игроков · ${gamesPlayed} игр</span>
-        <span class="history-card-winner">${winner.name}</span>
-      </div>
-      <div class="history-card-date">${dateStr}</div>
-      <button class="history-delete" onclick="event.stopPropagation(); confirmDelete(${t.id})">✕</button>
-    `;
-    card.addEventListener('click', () => showDetail(t.id));
+    card.className = 'history-card' + (isInProgress ? ' in-progress' : '');
+
+    if (isInProgress) {
+      card.innerHTML = `
+        <div class="history-card-name">${t.name} <span class="badge-inprogress">в игре</span></div>
+        <div class="history-card-meta">
+          <span>${t.players.length} игроков · ${gamesPlayed} из ${t.schedule.length} игр</span>
+        </div>
+        <div class="history-card-date">${dateStr}</div>
+        <button class="history-delete" onclick="event.stopPropagation(); confirmDelete(${t.id})">✕</button>
+      `;
+      card.addEventListener('click', () => resumeTournament(t));
+    } else {
+      const stats = getStatsFromData(t.players, t.schedule, t.results);
+      const winner = stats[0];
+      card.innerHTML = `
+        <div class="history-card-name">${t.name}</div>
+        <div class="history-card-meta">
+          <span>${t.players.length} игроков · ${gamesPlayed} игр</span>
+          <span class="history-card-winner">${winner.name}</span>
+        </div>
+        <div class="history-card-date">${dateStr}</div>
+        <button class="history-delete" onclick="event.stopPropagation(); confirmDelete(${t.id})">✕</button>
+      `;
+      card.addEventListener('click', () => showDetail(t.id));
+    }
+
     container.appendChild(card);
   }
 
@@ -1419,6 +1509,7 @@ async function loadFeedbackMessages() {
 // --- Reset ---
 
 document.getElementById('btn-restart').addEventListener('click', () => {
+  currentTournamentId = null;
   for (let i = 1; i <= 6; i++) {
     document.getElementById(`player-${i}`).value = '';
   }
