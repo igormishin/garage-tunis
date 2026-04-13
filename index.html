@@ -595,9 +595,7 @@ input[type="number"]:focus { border-color: var(--sand); }
         <tbody id="leaderboard-body"></tbody>
       </table>
     </div>
-    <div style="text-align:center;margin-top:4px;padding-bottom:8px">
-      <button onclick="exitToMenu()" style="background:none;border:none;color:var(--text-dim);font-size:0.82rem;cursor:pointer;padding:10px 16px;opacity:0.7">↩ Сохранить и выйти в меню</button>
-    </div>
+    <button class="btn btn-secondary" onclick="exitToMenu()" style="margin-top:8px">↩ Выйти в меню</button>
   </div>
 
   <!-- Screen 3: Final Results -->
@@ -1106,6 +1104,18 @@ function saveEdit(gameIdx) {
   gameResults[gameIdx] = { ...gameResults[gameIdx], score1: v1, score2: v2, comment };
   renderCurrentGame();
   updateLeaderboard();
+
+  // Flash saved card green, then scroll to current game
+  const saved = document.querySelector(`#games-list [data-game-idx="${gameIdx}"]`);
+  if (saved) {
+    saved.style.transition = 'border-color 0.2s';
+    saved.style.borderColor = 'var(--green)';
+    setTimeout(() => { saved.style.borderColor = ''; }, 800);
+  }
+  const currentCard = document.getElementById(`game-${currentGame}`);
+  if (currentCard) {
+    setTimeout(() => currentCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
 }
 
 function finishTournament() {
