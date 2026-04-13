@@ -440,6 +440,23 @@ input[type="number"]:focus { border-color: var(--sand); }
   margin-bottom: 16px;
 }
 
+/* In-progress count badge on Турниры button */
+#inprogress-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
 /* In-progress badge */
 .badge-inprogress {
   display: inline-block;
@@ -573,7 +590,7 @@ input[type="number"]:focus { border-color: var(--sand); }
     </div>
     <div class="player-inputs" id="player-inputs"></div>
     <button class="btn btn-primary" id="btn-start" disabled>Начать турнир</button>
-    <button class="btn btn-secondary" id="btn-history" onclick="showHistory()">Турниры</button>
+    <button class="btn btn-secondary" id="btn-history" onclick="showHistory()">Турниры <span id="inprogress-badge" style="display:none"></span></button>
     <button class="btn btn-secondary" style="margin-top:8px;font-size:0.85rem;opacity:0.7" onclick="showFeedback()">💬 Обратная связь</button>
   </div>
 
@@ -595,7 +612,7 @@ input[type="number"]:focus { border-color: var(--sand); }
         <tbody id="leaderboard-body"></tbody>
       </table>
     </div>
-    <button class="btn btn-secondary" onclick="exitToMenu()" style="margin-top:8px">↩ Выйти в меню</button>
+    <button class="btn btn-secondary" onclick="exitToMenu()" style="margin-top:8px">↩ Сохранить и выйти в меню</button>
   </div>
 
   <!-- Screen 3: Final Results -->
@@ -810,6 +827,7 @@ function showScreen(screen, pushState) {
   if (pushState !== false && !_isPopState) {
     history.pushState({ screen: screen.id }, '', '#' + screen.id);
   }
+  if (screen === screenNames) refreshInProgressBadge();
 }
 
 window.addEventListener('popstate', async (e) => {
@@ -1156,6 +1174,20 @@ async function finishAndSave() {
 }
 
 async function exitToMenu() {
+  // Save any partially entered score in the active game card
+  if (currentGame < schedule.length) {
+    const s1el = document.getElementById(`score1-${currentGame}`);
+    const s2el = document.getElementById(`score2-${currentGame}`);
+    if (s1el && s2el) {
+      const v1 = parseInt(s1el.value);
+      const v2 = parseInt(s2el.value);
+      if (!isNaN(v1) && !isNaN(v2) && v1 >= 0 && v2 >= 0 && v1 !== v2) {
+        const comment = getGameComment(v1, v2);
+        gameResults[currentGame] = { score1: v1, score2: v2, time: new Date().toISOString(), comment };
+        currentGame++;
+      }
+    }
+  }
   const data = buildTournamentData(null);
   if (currentTournamentId) {
     await updateTournament(currentTournamentId, data);
@@ -1163,7 +1195,20 @@ async function exitToMenu() {
     const id = await saveTournament(data);
     currentTournamentId = id;
   }
+  await refreshInProgressBadge();
   showScreen(screenNames);
+}
+
+async function refreshInProgressBadge() {
+  try {
+    const { data, error } = await db.from('tournaments').select('id').is('finished_at', null);
+    const count = data?.length || 0;
+    const badge = document.getElementById('inprogress-badge');
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+  } catch (e) { /* ignore */ }
 }
 
 function resumeTournament(t) {
@@ -1532,6 +1577,7 @@ document.getElementById('btn-restart').addEventListener('click', () => {
 // --- Init ---
 initPlayerInputs();
 document.getElementById('tournament-name').value = randomTournamentName();
+refreshInProgressBadge();
 </script>
 </body>
 </html>
