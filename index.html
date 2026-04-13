@@ -605,6 +605,7 @@ input[type="number"]:focus { border-color: var(--sand); }
             <th class="wins">Побед</th>
             <th class="losses">Пораж</th>
             <th class="points">Очки</th>
+            <th class="games">Игр</th>
           </tr>
         </thead>
         <tbody id="leaderboard-body"></tbody>
@@ -1266,7 +1267,7 @@ function getStats() {
 }
 
 function updateLeaderboard() {
-  renderLeaderboardTable('leaderboard-body', getStats());
+  renderLeaderboardTable('leaderboard-body', getStats(), true);
 }
 
 function renderLeaderboardTable(tableId, sorted, showGames = false) {
