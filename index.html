@@ -1047,6 +1047,7 @@ function getGameComment(score1, score2) {
 }
 
 let shownTip = false;
+let editingGameIdx = null;
 
 function confirmGame(gameIdx) {
   const score1 = parseInt(document.getElementById(`score1-${gameIdx}`).value);
@@ -1064,10 +1065,47 @@ function confirmGame(gameIdx) {
   }
 }
 
-function editGame(gameIdx) {
-  if (document.getElementById(`edit-s1-${gameIdx}`)) return; // already editing
+function collapseEdit(gameIdx) {
+  const card = document.querySelector(`#games-list [data-game-idx="${gameIdx}"]`);
+  if (!card) return;
   const g = schedule[gameIdx];
   const r = gameResults[gameIdx];
+  const t1names = g.team1.map(idx => players[idx]).join(' + ');
+  const t2names = g.team2.map(idx => players[idx]).join(' + ');
+  const restNames = g.rest.map(idx => players[idx]).join(', ');
+  card.innerHTML = `
+    <div class="game-header">
+      <span class="game-num">Игра ${gameIdx + 1}</span>
+      ${restNames ? `<span class="game-rest">отдых: ${restNames}</span>` : ''}
+    </div>
+    <div class="game-result-summary">
+      <span class="team team-left ${r.score1 > r.score2 ? 'winner' : ''}">${t1names}</span>
+      <span class="score">${r.score1}:${r.score2}</span>
+      <span class="team team-right ${r.score2 > r.score1 ? 'winner' : ''}">${t2names}</span>
+    </div>
+    ${r.comment ? `<div style="font-size:0.75rem;color:var(--text-dim);padding:0 14px 4px;text-align:right;font-style:italic">${r.comment}</div>` : ''}
+    ${r.time ? `<div class="game-time">${formatTime(r.time)}</div>` : ''}
+  `;
+  card.onclick = () => editGame(gameIdx);
+  if (editingGameIdx === gameIdx) editingGameIdx = null;
+}
+
+function editGame(gameIdx) {
+  // Close the previously open edit card
+  if (editingGameIdx !== null && editingGameIdx !== gameIdx) {
+    collapseEdit(editingGameIdx);
+  }
+  // Toggle off if clicking the same card
+  if (editingGameIdx === gameIdx) {
+    collapseEdit(gameIdx);
+    return;
+  }
+
+  editingGameIdx = gameIdx;
+  const g = schedule[gameIdx];
+  const r = gameResults[gameIdx];
+  const origScore1 = r.score1;
+  const origScore2 = r.score2;
   const t1names = g.team1.map(idx => players[idx]).join(' + ');
   const t2names = g.team2.map(idx => players[idx]).join(' + ');
   const restNames = g.rest.map(idx => players[idx]).join(', ');
@@ -1091,21 +1129,24 @@ function editGame(gameIdx) {
         <span class="score-colon">:</span>
         <input type="number" id="edit-s2-${gameIdx}" min="0" value="${r.score2}" inputmode="numeric">
       </div>
-      <button class="btn btn-primary" id="edit-save-${gameIdx}" onclick="saveEdit(${gameIdx})">Сохранить</button>
+      <button class="btn btn-primary" id="edit-save-${gameIdx}" onclick="saveEdit(${gameIdx})" style="display:none">Сохранить</button>
     </div>
   `;
 
-  // Live winner highlight while editing
+  // Live winner highlight + show save button only when score changed
   const onInput = () => {
     const v1 = parseInt(document.getElementById(`edit-s1-${gameIdx}`).value);
     const v2 = parseInt(document.getElementById(`edit-s2-${gameIdx}`).value);
     const l1 = document.getElementById(`edit-t1-${gameIdx}`);
     const l2 = document.getElementById(`edit-t2-${gameIdx}`);
+    const btn = document.getElementById(`edit-save-${gameIdx}`);
     l1.classList.remove('winner','loser'); l2.classList.remove('winner','loser');
     if (!isNaN(v1) && !isNaN(v2) && v1 !== v2) {
       l1.classList.add(v1 > v2 ? 'winner' : 'loser');
       l2.classList.add(v2 > v1 ? 'winner' : 'loser');
     }
+    const changed = !isNaN(v1) && !isNaN(v2) && v1 !== v2 && (v1 !== origScore1 || v2 !== origScore2);
+    if (btn) btn.style.display = changed ? '' : 'none';
   };
   document.getElementById(`edit-s1-${gameIdx}`).addEventListener('input', onInput);
   document.getElementById(`edit-s2-${gameIdx}`).addEventListener('input', onInput);
@@ -1119,6 +1160,7 @@ function saveEdit(gameIdx) {
 
   const comment = getGameComment(v1, v2);
   gameResults[gameIdx] = { ...gameResults[gameIdx], score1: v1, score2: v2, comment };
+  editingGameIdx = null;
   renderCurrentGame();
   updateLeaderboard();
 
